@@ -6,7 +6,7 @@ import altair as alt
 
 
 # Obtain the latest date of the data
-url = 'http://localhost:8080/devices/1/entries/'
+url = 'http://localhost:8080/devices/1/entries'
 response = requests.get(url)
 if response.status_code != 200:
     st.write('Response code: ' + str(response.status_code))
@@ -17,7 +17,7 @@ dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
 
 st.header("Sump Pump Data")
 
-response = requests.get(url + dt.strftime('%Y/%m/%d'))
+response = requests.get(url + "/" + dt.strftime('%Y/%m/%d'))
 if response.status_code != 200:
     st.write('Response code: ' + str(response.status_code))
     raise SystemExit
