@@ -15,9 +15,17 @@ if response.status_code != 200:
     raise SystemExit
 
 entry = response.json()
-dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
-request_path = dt.strftime('%Y/%m/%d')
+latest_dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
 
+# Get oldest entry to set the min date for date picker
+response = requests.get(base_url + "?ascending=true")
+if response.status_code != 200:
+    st.write('URL: ' + base_url)
+    st.write('Response code: ' + str(response.status_code))
+    raise SystemExit
+
+entry = response.json()
+oldest_dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
 
 st.header("Sump Pump Data")
 entries_df = pd.DataFrame()
@@ -38,7 +46,12 @@ def update_data():
     entries_df['waterlevel'] = entries_df['value'].div(10)
     #st.write(entries_df)
 
-selected_date = st.sidebar.date_input(label = "Select", value = dt, on_change=update_data)
+selected_date = st.sidebar.date_input(label = "Select",
+                                      value = latest_dt,
+                                      on_change=update_data,
+                                      min_value=oldest_dt,
+                                      max_value=latest_dt
+                                      )
 
 update_data()
 
