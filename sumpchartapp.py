@@ -29,21 +29,29 @@ oldest_dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
 
 st.header("Sump Pump Data")
 entries_df = pd.DataFrame()
+chart_title = ""
+st.sidebar.caption = chart_title
 
 def update_data():
     global entries_df
-    response = requests.get(base_url + "/" + selected_date.strftime("%Y/%m/%d"))
+    global chart_title
+    query_date = selected_date.strftime("%Y/%m/%d")
+    response = requests.get(base_url + "/" + query_date)
     if response.status_code != 200:
-        st.write('URL: ' + base_url + "/" + selected_date.strftime("%Y/%m/%d"))
+        st.write('URL: ' + base_url + "/" + query_date)
         st.write('Response code: ' + str(response.status_code))
-        raise SystemExit
+        return
 
     entries_json = response.json()
-    entries_df = pd.DataFrame(entries_json)
-    # st.line_chart(entries_df, x='measuredOn', y='value')
+    if len(entries_json) > 0:
+        entries_df = pd.DataFrame(entries_json)
 
-    entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.strftime("%H:%M:%S")
-    entries_df['waterlevel'] = entries_df['value'].div(10)
+        entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.strftime("%H:%M:%S")
+        entries_df['waterlevel'] = entries_df['value'].div(10)
+        chart_title = "Water Level on "
+    else:
+        chart_title = "No data on "
+        entries_df = pd.DataFrame([], columns=['time', 'waterlevel'])
     #st.write(entries_df)
 
 selected_date = st.sidebar.date_input(label = "Select",
@@ -55,10 +63,12 @@ selected_date = st.sidebar.date_input(label = "Select",
 
 update_data()
 
+# st.line_chart(entries_df, x='measuredOn', y='value')
+
 chart = (
         alt.Chart(
             data=entries_df,
-            title="Water Level on " + selected_date.strftime("%Y/%m/%d"),
+            title = chart_title + selected_date.strftime("%Y/%m/%d"),
         )
         .mark_line()
         .encode(
