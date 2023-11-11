@@ -27,7 +27,7 @@ if response.status_code != 200:
 entry = response.json()
 oldest_dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
 
-st.header("Sump Pump Data")
+st.header("Sump Water Level")
 entries_df = pd.DataFrame()
 chart_title = ""
 st.sidebar.caption = chart_title
@@ -48,7 +48,7 @@ def update_data():
 
         entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.strftime("%H:%M:%S")
         entries_df['waterlevel'] = entries_df['value'].div(10)
-        chart_title = "Water Level on "
+        chart_title = "Device 1 Water Level on "
     else:
         chart_title = "No data on "
         entries_df = pd.DataFrame([], columns=['time', 'waterlevel'])
