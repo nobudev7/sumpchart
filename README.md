@@ -11,8 +11,14 @@ This web application is based on streamlit.
 - streamlit (tested 1.28)
 - pandas (tested 2.1)
 
+## Installation
+``` bash
+(venv) $ pip install streamlit
+```
+Detailed installation steps can be found in [Installing Streamlit on Mac](https://dev.to/developernt/streamlit-memo-cc1).
+
 ## Run
-``` shell
+``` bash
 (venv) $ streamlit run sumpchartapp.py
 
   You can now view your Streamlit app in your browser.
