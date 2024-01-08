@@ -1,83 +1,66 @@
 import streamlit as st
-import requests
 import pandas as pd
 import datetime
 import altair as alt
+import utils
 
 
-base_url = 'http://localhost:8080/devices/1/entries'
-
-# Obtain the latest date of the data
-response = requests.get(base_url)
-if response.status_code != 200:
-    st.write('URL: ' + base_url)
-    st.write('Response code: ' + str(response.status_code))
-    raise SystemExit
-
-entry = response.json()
-latest_dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
-
-# Get oldest entry to set the min date for date picker
-response = requests.get(base_url + "?ascending=true")
-if response.status_code != 200:
-    st.write('URL: ' + base_url)
-    st.write('Response code: ' + str(response.status_code))
-    raise SystemExit
-
-entry = response.json()
-oldest_dt = datetime.datetime.fromisoformat(entry.get("measuredOn"))
+list_url = 'http://localhost/devices/1/list'
 
 st.header("Sump Water Level")
 entries_df = pd.DataFrame()
 chart_title = ""
 st.sidebar.caption = chart_title
 
-def update_data():
-    global entries_df
-    global chart_title
-    query_date = selected_date.strftime("%Y/%m/%d")
-    response = requests.get(base_url + "/" + query_date)
-    if response.status_code != 200:
-        st.write('URL: ' + base_url + "/" + query_date)
-        st.write('Response code: ' + str(response.status_code))
-        return
+if 'years' not in st.session_state:
+    years = utils.get_json_response(list_url)
+    years.sort(reverse=True);
+    st.session_state.years = years
 
-    entries_json = response.json()
-    if len(entries_json) > 0:
-        entries_df = pd.DataFrame(entries_json)
+yearmonthdict = {}
+latestmonth = ""
+first_day_range = ""
+last_day_range = ""
+format = '%Y/%m/%d'
 
-        entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.strftime("%H:%M:%S")
-        entries_df['waterlevel'] = entries_df['value'].div(10)
-        chart_title = "Device 1 Water Level on "
-    else:
-        chart_title = "No data on "
-        entries_df = pd.DataFrame([], columns=['time', 'waterlevel'])
-    #st.write(entries_df)
+def date_selected():
+    st.write("selected = " + st.session_state.selected_date.strftime("%Y/%m/%d"))
 
-selected_date = st.sidebar.date_input(label = "Select",
-                                      value = latest_dt,
-                                      on_change=update_data,
-                                      min_value=oldest_dt,
-                                      max_value=latest_dt
+for year in st.session_state.years:
+    st.sidebar.markdown('## ' + year)
+    if "monthdatafor" + year not in st.session_state:
+        month_url = list_url + "/" + year
+        months = utils.get_json_response(month_url)
+        months.sort(reverse=True)
+        st.session_state["monthdatafor"+year] = months
+
+    yearmonthdict[year] = st.session_state["monthdatafor"+year]
+    for month in st.session_state["monthdatafor"+year]:
+        selected_month = st.sidebar.button(month)
+        if selected_month:
+            #Debug st.sidebar.write("Selected Month: " + month)
+            latestmonth = month
+            days = utils.get_json_response(list_url + "/" + latestmonth)
+            first_day_range = days[0]
+            last_day_range = days[-1]
+            #Debug st.sidebar.write(days)
+            selected_date = st.sidebar.date_input(label = "Select",
+                                      value = datetime.datetime.strptime(last_day_range,format),
+                                      #Debug on_change=date_selected,
+                                      key="selected_date",
+                                      min_value=datetime.datetime.strptime(first_day_range,format),
+                                      max_value=datetime.datetime.strptime(last_day_range,format)
                                       )
 
-update_data()
+if latestmonth == "":
+    latestmonth = yearmonthdict[st.session_state.years[0]][0]
 
-# st.line_chart(entries_df, x='measuredOn', y='value')
-
-chart = (
-        alt.Chart(
-            data=entries_df,
-            title = chart_title + selected_date.strftime("%Y/%m/%d"),
-        )
-        .mark_line()
-        .encode(
-            x=alt.X("time", axis=alt.Axis(title="Time")),
-            y=alt.Y("waterlevel", axis=alt.Axis(title="Water Level (cm)")),
-        )
-)
-
-st.altair_chart(chart, use_container_width=True)
+if 'selected_date' not in st.session_state:
+    days = utils.get_json_response(list_url + "/" + latestmonth)
+    last_date = days[-1]
+    #Debug st.write("last_date: " + last_date)
+    st.session_state['selected_date'] = datetime.datetime.strptime(last_date, '%Y/%m/%d').date()
 
 
-
+chart_day = st.session_state['selected_date'].strftime("%Y/%m/%d")
+utils.update_chart(chart_day)
