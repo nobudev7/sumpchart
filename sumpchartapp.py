@@ -5,7 +5,7 @@ import altair as alt
 import utils
 
 
-list_url = 'http://localhost/devices/1/list'
+list_url = 'http://localhost:8080/devices/1/list'
 
 st.header("Sump Water Level")
 entries_df = pd.DataFrame()

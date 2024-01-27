@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import altair as alt
 
-entry_url = 'http://localhost/devices/1/entries/'
+entry_url = 'http://localhost:8080/devices/1/entries/'
 
 
 def update_chart(date):
@@ -28,7 +28,7 @@ def update_chart(date):
         .mark_line()
         .encode(
             x=alt.X("time", axis=alt.Axis(title="Time")),
-            y=alt.Y("waterlevel", axis=alt.Axis(title="Water Level (cm)")),
+            y=alt.Y("waterlevel", axis=alt.Axis(title="Water Level (cm)"), scale=alt.Scale(domain=[5, 20])),
         )
     )
     st.altair_chart(chart, use_container_width=True)
