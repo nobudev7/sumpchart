@@ -30,5 +30,6 @@ Detailed installation steps can be found in [Installing Streamlit on Mac](https:
 
 ## Features
 - Visualize sump water level for a specified day
-- Calendar widget let users to choose the day
+- Monthly Data
+- ~~Calendar widget let users to choose the day~~ Update: Changed to monthly view
 - Handles the day when no data is available
