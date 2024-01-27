@@ -5,8 +5,9 @@ import altair as alt
 
 entry_url = 'http://localhost:8080/devices/1/entries/'
 
-
 def update_chart(date):
+    max_y = 20
+    note = ""
     entries_json = get_json_response(entry_url + date)
 
     if len(entries_json) > 0:
@@ -14,21 +15,28 @@ def update_chart(date):
 
         entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.strftime("%H:%M:%S")
         entries_df['waterlevel'] = entries_df['value'].div(10)
+        max_level = entries_df['waterlevel'].max()
+        if (max_level > 50):
+            max_y = max_level
+            note = "Note: Water level data contains abnormally high value"
         chart_title = "Device 1 Water Level on "
     else:
         chart_title = "No data on "
         entries_df = pd.DataFrame([], columns=['time', 'waterlevel'])
-    #st.write(entries_df)    
-        
+    # st.write(entries_df)    
+
+    st.subheader(chart_title + date)
+    if (note != ""):
+        st.text(note)
+
     chart = (
         alt.Chart(
             data=entries_df,
-            title = chart_title + date,
         )
         .mark_line()
         .encode(
             x=alt.X("time", axis=alt.Axis(title="Time")),
-            y=alt.Y("waterlevel", axis=alt.Axis(title="Water Level (cm)"), scale=alt.Scale(domain=[5, 20])),
+            y=alt.Y("waterlevel", axis=alt.Axis(title="Water Level (cm)"), scale=alt.Scale(domain=[5, max_y])),
         )
     )
     st.altair_chart(chart, use_container_width=True)

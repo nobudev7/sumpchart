@@ -18,13 +18,10 @@ if 'years' not in st.session_state:
     st.session_state.years = years
 
 yearmonthdict = {}
-latestmonth = ""
+selected_month = ""
 first_day_range = ""
 last_day_range = ""
 format = '%Y/%m/%d'
-
-def date_selected():
-    st.write("selected = " + st.session_state.selected_date.strftime("%Y/%m/%d"))
 
 for year in st.session_state.years:
     st.sidebar.markdown('## ' + year)
@@ -36,31 +33,16 @@ for year in st.session_state.years:
 
     yearmonthdict[year] = st.session_state["monthdatafor"+year]
     for month in st.session_state["monthdatafor"+year]:
-        selected_month = st.sidebar.button(month)
-        if selected_month:
-            #Debug st.sidebar.write("Selected Month: " + month)
-            latestmonth = month
-            days = utils.get_json_response(list_url + "/" + latestmonth)
-            first_day_range = days[0]
-            last_day_range = days[-1]
-            #Debug st.sidebar.write(days)
-            selected_date = st.sidebar.date_input(label = "Select",
-                                      value = datetime.datetime.strptime(last_day_range,format),
-                                      #Debug on_change=date_selected,
-                                      key="selected_date",
-                                      min_value=datetime.datetime.strptime(first_day_range,format),
-                                      max_value=datetime.datetime.strptime(last_day_range,format)
-                                      )
+        if(st.sidebar.button(month)):
+            selected_month = month
 
-if latestmonth == "":
-    latestmonth = yearmonthdict[st.session_state.years[0]][0]
+if selected_month == "":
+    selected_month = yearmonthdict[st.session_state.years[0]][0]
 
-if 'selected_date' not in st.session_state:
-    days = utils.get_json_response(list_url + "/" + latestmonth)
-    last_date = days[-1]
-    #Debug st.write("last_date: " + last_date)
-    st.session_state['selected_date'] = datetime.datetime.strptime(last_date, '%Y/%m/%d').date()
+# DEBUG st.write("selected_month:" + selected_month)
 
+days = utils.get_json_response(list_url + "/" + selected_month)
+days.sort(reverse=True)
 
-chart_day = st.session_state['selected_date'].strftime("%Y/%m/%d")
-utils.update_chart(chart_day)
+for day in days:
+    utils.update_chart(day)
