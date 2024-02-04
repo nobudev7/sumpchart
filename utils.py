@@ -13,7 +13,7 @@ def update_chart(date):
     if len(entries_json) > 0:
         entries_df = pd.DataFrame(entries_json)
 
-        entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.strftime("%H:%M:%S")
+        entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.tz_localize('America/New_York')
         entries_df['waterlevel'] = entries_df['value'].div(10)
         max_level = entries_df['waterlevel'].max()
         if (max_level > 50):
@@ -23,6 +23,7 @@ def update_chart(date):
     else:
         chart_title = "No data on "
         entries_df = pd.DataFrame([], columns=['time', 'waterlevel'])
+
     # st.write(entries_df)    
 
     st.subheader(chart_title + date)
@@ -35,7 +36,7 @@ def update_chart(date):
         )
         .mark_line()
         .encode(
-            x=alt.X("time", axis=alt.Axis(title="Time")),
+            x=alt.X("time", axis=alt.Axis(title="Time"), timeUnit="hoursminutes"),
             y=alt.Y("waterlevel", axis=alt.Axis(title="Water Level (cm)"), scale=alt.Scale(domain=[5, max_y])),
         )
     )
