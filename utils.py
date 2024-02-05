@@ -13,7 +13,7 @@ def update_chart(date):
     if len(entries_json) > 0:
         entries_df = pd.DataFrame(entries_json)
 
-        entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.tz_localize('America/New_York')
+        entries_df['time'] = pd.to_datetime(entries_df['measuredOn']).dt.tz_localize('America/New_York',  ambiguous=True)
         entries_df['waterlevel'] = entries_df['value'].div(10)
         max_level = entries_df['waterlevel'].max()
         if (max_level > 50):
