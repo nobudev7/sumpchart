@@ -19,6 +19,8 @@ def update_chart(date):
         if (max_level > 50):
             max_y = max_level
             note = "Note: Water level data contains abnormally high value"
+        elif (max_level > 30) :
+            max_y = 30
         chart_title = "Device 1 Water Level on "
     else:
         chart_title = "No data on "
@@ -29,6 +31,8 @@ def update_chart(date):
     st.subheader(chart_title + date)
     if (note != ""):
         st.text(note)
+
+    # st.write(max_y)
 
     chart = (
         alt.Chart(
